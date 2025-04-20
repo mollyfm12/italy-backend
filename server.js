@@ -1,24 +1,23 @@
-// Core dependencies
 const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
 const Joi = require("joi");
 const app = express();
 
-// Middleware setup
+// Middleware
 app.use(express.static("public"));
 app.use("/uploads", express.static("uploads"));
 app.use(express.json());
 app.use(cors());
 
-// Multer config (file upload)
+// Image upload config
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "./public/images/"),
   filename: (req, file, cb) => cb(null, file.originalname),
 });
 const upload = multer({ storage: storage });
 
-// Sample data
+// Data array
 let budas = [
   {
     _id: 1,
@@ -43,66 +42,62 @@ let budas = [
   },
 ];
 
-// GET route for Budapest data
+// GET all budas
 app.get("/api/budas", (req, res) => {
   res.send(budas);
 });
 
-
-app.post("/api/budas", upload.single("img"), (req,res)=>{
-  const result = validateBudaHouse(req.body);
-
-
-  if(result.error){
-      console.log("I have an error");
-      res.status(400).send(result.error.details[0].message);
-      return;
+// POST new buda
+app.post("/api/budas", upload.single("img"), (req, res) => {
+  const result = validateBuda(req.body);
+  if (result.error) {
+    console.log("Validation error:", result.error.details[0].message);
+    return res.status(400).send(result.error.details[0].message);
   }
 
   const buda = {
-      _id: budas.length,
-      name:req.body.name,
-      description:req.body.description,
-      rating:req.body.rating,
+    _id: budas.length + 1,
+    name: req.body.name,
+    description: req.body.description,
+    rating: req.body.rating,
+    main_image: req.file ? "images/" + req.file.filename : "",
   };
-
-  //adding image
-  if(req.file){
-      buda.main_image = req.file.filename;
-  }
 
   budas.push(buda);
   res.status(200).send(buda);
 });
 
-app.put("/api/budas/:id", upload.single("img"),(req,res)=>{
-  const buda = budas.find((buda)=>buda._id===parseInt(req.params.id));
-
-  if(!buda){
-      res.status(404).send("The bdua with the provided id was not found");
-      return;
-  }
+// PUT to edit buda
+app.put("/api/budas/:id", upload.single("img"), (req, res) => {
+  const buda = budas.find((b) => b._id === parseInt(req.params.id));
+  if (!buda) return res.status(404).send("Buda not found");
 
   const result = validateBuda(req.body);
-
-  if(result.error){
-      res.status(400).send(result.error.details[0].message);
-      return;
+  if (result.error) {
+    return res.status(400).send(result.error.details[0].message);
   }
 
   buda.name = req.body.name;
   buda.description = req.body.description;
   buda.rating = req.body.rating;
-
-
-  if(req.file){
-      bdua.main_image = req.file.filename;
+  if (req.file) {
+    buda.main_image = "images/" + req.file.filename;
   }
 
   res.status(200).send(buda);
 });
 
+// DELETE a buda
+app.delete("/api/buda/:id", (req, res) => {
+  const buda = budas.find((b) => b._id === parseInt(req.params.id));
+  if (!buda) return res.status(404).send("Buda not found");
 
+  const index = budas.indexOf(buda);
+  budas.splice(index, 1);
+  res.status(200).send(buda);
+});
+
+// Joi validation
 const validateBuda = (buda) => {
   const schema = Joi.object({
     _id: Joi.allow(""),
@@ -110,15 +105,11 @@ const validateBuda = (buda) => {
     description: Joi.string().required(),
     rating: Joi.number().required(),
   });
-
   return schema.validate(buda);
 };
-
-
 
 // Start server
 const PORT = process.env.PORT || 3002;
 app.listen(PORT, () => {
   console.log(`Listening on port ${PORT}`);
 });
-
