@@ -48,28 +48,14 @@ app.get("/api/budas", (req, res) => {
   res.send(budas);
 });
 
-/*
-app.post("/api/budas", upload.single("img"), (req, res) => { ... });
-app.put("/api/budas/:id", upload.single("img"), (req, res) => { ... });
-app.delete("/api/budas/:id", (req, res) => { ... });
 
-const validateBuda = (buda) => {
-  const schema = Joi.object({
-    _id: Joi.allow(""),
-    name: Joi.string().min(3).required(),
-    description: Joi.string().required(), // FIXED HERE
-    rating: Joi.number().required(),
-  });
-  return schema.validate(buda);
-};
-*/
 app.post("/api/budas", upload.single("img"), (req,res)=>{
   const result = validateBudaHouse(req.body);
 
 
   if(result.error){
       console.log("I have an error");
-      res.status(400).send(result.error.deatils[0].message);
+      res.status(400).send(result.error.details[0].message);
       return;
   }
 
@@ -115,6 +101,18 @@ app.put("/api/budas/:id", upload.single("img"),(req,res)=>{
 
   res.status(200).send(buda);
 });
+
+
+const validateBuda = (buda) => {
+  const schema = Joi.object({
+    _id: Joi.allow(""),
+    name: Joi.string().min(3).required(),
+    description: Joi.string().required(),
+    rating: Joi.number().required(),
+  });
+
+  return schema.validate(buda);
+};
 
 
 
