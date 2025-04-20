@@ -48,7 +48,6 @@ app.get("/api/budas", (req, res) => {
   res.send(budas);
 });
 
-// ❌ Commented routes for now
 /*
 app.post("/api/budas", upload.single("img"), (req, res) => { ... });
 app.put("/api/budas/:id", upload.single("img"), (req, res) => { ... });
@@ -64,6 +63,60 @@ const validateBuda = (buda) => {
   return schema.validate(buda);
 };
 */
+app.post("/api/budas", upload.single("img"), (req,res)=>{
+  const result = validateBudaHouse(req.body);
+
+
+  if(result.error){
+      console.log("I have an error");
+      res.status(400).send(result.error.deatils[0].message);
+      return;
+  }
+
+  const buda = {
+      _id: budas.length,
+      name:req.body.name,
+      description:req.body.description,
+      rating:req.body.rating,
+  };
+
+  //adding image
+  if(req.file){
+      buda.main_image = req.file.filename;
+  }
+
+  budas.push(buda);
+  res.status(200).send(buda);
+});
+
+app.put("/api/budas/:id", upload.single("img"),(req,res)=>{
+  const buda = budas.find((buda)=>buda._id===parseInt(req.params.id));
+
+  if(!buda){
+      res.status(404).send("The bdua with the provided id was not found");
+      return;
+  }
+
+  const result = validateBuda(req.body);
+
+  if(result.error){
+      res.status(400).send(result.error.details[0].message);
+      return;
+  }
+
+  buda.name = req.body.name;
+  buda.description = req.body.description;
+  buda.rating = req.body.rating;
+
+
+  if(req.file){
+      bdua.main_image = req.file.filename;
+  }
+
+  res.status(200).send(buda);
+});
+
+
 
 // Start server
 const PORT = process.env.PORT || 3002;
