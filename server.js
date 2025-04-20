@@ -101,7 +101,7 @@ app.delete("/api/buda/:id", (req, res) => {
 const validateBuda = (buda) => {
   const schema = Joi.object({
     _id: Joi.allow(""),
-    name: Joi.string().min(3).required(),
+    name: Joi.string().min(2).required(),
     description: Joi.string().required(),
     rating: Joi.number().required(),
   });
