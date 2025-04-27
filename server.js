@@ -65,7 +65,7 @@ const Buda = mongoose.model("Buda", budaSchema);
 
 app.get("/api/budas", async(req, res) => {
   const budas = await Buda.find();
-  console.log(houses);
+  console.log(budas);
   res.send(budas);
 });
 
