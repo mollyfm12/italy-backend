@@ -77,27 +77,34 @@ app.get("/api/budas/:id", async (req,res) => {
 
 // POST new buda
 app.post("/api/budas", upload.single("img"), async (req, res) => {
-  const result = validateBuda(req.body);
-  if (result.error) {
-    console.log("Validation error:", result.error.details[0].message);
-    return res.status(400).send(result.error.details[0].message);
+  try {
+    console.log("POST /api/budas hit");
+
+    const result = validateBuda(req.body);
+    if (result.error) {
+      console.log("Validation error:", result.error.details[0].message);
+      return res.status(400).send(result.error.details[0].message);
+    }
+
+    console.log("Request body:", req.body);
+    console.log("File:", req.file);
+
+    const buda = new Buda({
+      name: req.body.name,
+      description: req.body.description,
+      rating: req.body.rating,
+      main_image: req.file ? "images/" + req.file.filename : "",
+    });
+
+    const newBuda = await buda.save();
+    console.log("Buda saved:", newBuda);
+    res.status(200).send(newBuda);
+  } catch (err) {
+    console.error("Server error during POST /api/budas:", err);
+    res.status(500).send("Internal Server Error");
   }
-
-  const buda = new Buda ({
-    //_id: budas.length + 1,
-    name: req.body.name,
-    description: req.body.description,
-    rating: req.body.rating,
-  });
-
-  if (req.file) {
-    buda.img = "images/" + req.file.filename;
-  }
-
-
-  const newBuda = await buda.save();
-  res.status(200).send(newBuda);
 });
+
 
 // PUT to edit buda
 app.put("/api/budas/:id", upload.single("img"), async (req, res) => {
