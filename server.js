@@ -3,6 +3,23 @@ const cors = require("cors");
 const multer = require("multer");
 const Joi = require("joi");
 const app = express();
+const mongoose = require("mongoose");
+
+//testdb is name of database, it will automatically make it
+mongoose
+  .connect("mongodb+srv://mollyfmason1:molly12345!@cluster0.pn1joxb.mongodb.net/")
+  .then(() => console.log("Connected to mongodb..."))
+  .catch((err) => console.error("could not connect ot mongodb...", err));
+
+const budaSchema = new mongoose.Schema({
+  name: String,
+  description: String, 
+  rating: Number,
+  main_image: String
+});
+//mongo automatically includes the id
+
+
 
 // Middleware
 app.use(express.static("public"));
@@ -42,33 +59,48 @@ let budas = [
   },
 ];
 
-// GET all budas
-app.get("/api/budas", (req, res) => {
+const Buda = mongoose.model("Buda", budaSchema);
+
+
+
+app.get("/api/budas", async(req, res) => {
+  const budas = await Buda.find();
+  console.log(houses);
   res.send(budas);
 });
 
+app.get("/api/budas/:id", async (req,res) => {
+  const houses = await Buda.findOne({_id: id});
+  res.send(buda);
+});
+
+
 // POST new buda
-app.post("/api/budas", upload.single("img"), (req, res) => {
+app.post("/api/budas", upload.single("img"), async (req, res) => {
   const result = validateBuda(req.body);
   if (result.error) {
     console.log("Validation error:", result.error.details[0].message);
     return res.status(400).send(result.error.details[0].message);
   }
 
-  const buda = {
-    _id: budas.length + 1,
+  const buda = new Buda ({
+    //_id: budas.length + 1,
     name: req.body.name,
     description: req.body.description,
     rating: req.body.rating,
-    main_image: req.file ? "images/" + req.file.filename : "",
-  };
+  });
 
-  budas.push(buda);
-  res.status(200).send(buda);
+  if (req.file) {
+    buda.img = "images/" + req.file.filename;
+  }
+
+
+  const newBuda = await buda.save();
+  res.status(200).send(newBuda);
 });
 
 // PUT to edit buda
-app.put("/api/budas/:id", upload.single("img"), (req, res) => {
+app.put("/api/budas/:id", upload.single("img"), async (req, res) => {
   const buda = budas.find((b) => b._id === parseInt(req.params.id));
   if (!buda) return res.status(404).send("Buda not found");
 
@@ -77,24 +109,30 @@ app.put("/api/budas/:id", upload.single("img"), (req, res) => {
     return res.status(400).send(result.error.details[0].message);
   }
 
-  buda.name = req.body.name;
-  buda.description = req.body.description;
-  buda.rating = req.body.rating;
-  if (req.file) {
-    buda.main_image = "images/" + req.file.filename;
+  let fieldsToUpdate = {
+    name: req.body.name,
+    description: req.body.description,
+    rating: req.body.rating,
   }
+  if (req.file) {
+    fieldsToUpdate.img = "images/" + req.file.filename;
+  }
+
+  const wentThrough = await Buda.updateOne(
+    {_id: req.params.id }, //list of properties and values to find
+    fieldsToUpdate
+  );
+
+  const updatedBuda = await Buda.findOne({_id: req.params.id });
+  res.send(updatedBuda);
 
   res.status(200).send(buda);
 });
 
 // DELETE a buda
-app.delete("/api/buda/:id", (req, res) => {
-  const buda = budas.find((b) => b._id === parseInt(req.params.id));
-  if (!buda) return res.status(404).send("Buda not found");
-
-  const index = budas.indexOf(buda);
-  budas.splice(index, 1);
-  res.status(200).send(buda);
+app.delete("/api/buda/:id", async (req, res) => {
+  const buda = await Buda.findByIdAndDelete(req.params.id );
+  res.send(buda);
 });
 
 // Joi validation
@@ -107,6 +145,7 @@ const validateBuda = (buda) => {
   });
   return schema.validate(buda);
 };
+
 
 // Start server
 const PORT = process.env.PORT || 3002;
