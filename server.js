@@ -74,37 +74,44 @@ seedInitialBudas();
 
 // GET all budas
 app.get("/api/budas", async (req, res) => {
-  let budas = await Buda.find();
+  try {
+    let budas = await Buda.find();
 
-  // If collection is empty, insert defaults
-  if (budas.length === 0) {
-    const defaultBudas = [
-      {
-        name: "Boat Tour",
-        description: "This boat tour",
-        rating: 9,
-        main_image: "images/boat.jpg",
-      },
-      {
-        name: "Thermal Baths",
-        description: "The thermal baths",
-        rating: 6,
-        main_image: "images/thermalBaths.jpg",
-      },
-      {
-        name: "Chimney Cake",
-        description: "Chimney Cake is a classic",
-        rating: 8,
-        main_image: "images/chimneyCake.jpg",
-      },
-    ];
+    // If no budas in DB, insert the defaults
+    if (budas.length === 0) {
+      const defaultBudas = [
+        {
+          name: "Boat Tour",
+          description: "This boat tour",
+          rating: 9,
+          main_image: "images/boat.jpg",
+        },
+        {
+          name: "Thermal Baths",
+          description: "The thermal baths",
+          rating: 6,
+          main_image: "images/thermalBaths.jpg",
+        },
+        {
+          name: "Chimney Cake",
+          description: "Chimney Cake is a classic",
+          rating: 8,
+          main_image: "images/chimneyCake.jpg",
+        },
+      ];
 
-    await Buda.insertMany(defaultBudas);
-    budas = await Buda.find(); // Fetch again after inserting
+      await Buda.insertMany(defaultBudas);
+      console.log("Inserted default budas!");
+      budas = await Buda.find(); // Fetch again
+    }
+
+    res.send(budas);
+  } catch (err) {
+    console.error("Error fetching budas:", err);
+    res.status(500).send("Server error");
   }
-
-  res.send(budas);
 });
+
 
 
 // GET one buda by ID
