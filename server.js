@@ -25,7 +25,15 @@ const budaSchema = new mongoose.Schema({
 app.use(express.static("public"));
 app.use("/uploads", express.static("uploads"));
 app.use(express.json());
-app.use(cors());
+//app.use(cors());
+const corsOptions = {
+  origin: ["http://localhost:3000", "https://mollyfm12.github.io"],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: false
+};
+
+app.use(cors(corsOptions));
+
 
 // Image upload config
 const storage = multer.diskStorage({
