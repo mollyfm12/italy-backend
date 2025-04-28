@@ -74,9 +74,38 @@ seedInitialBudas();
 
 // GET all budas
 app.get("/api/budas", async (req, res) => {
-  const budas = await Buda.find();
+  let budas = await Buda.find();
+
+  // If collection is empty, insert defaults
+  if (budas.length === 0) {
+    const defaultBudas = [
+      {
+        name: "Boat Tour",
+        description: "This boat tour",
+        rating: 9,
+        main_image: "images/boat.jpg",
+      },
+      {
+        name: "Thermal Baths",
+        description: "The thermal baths",
+        rating: 6,
+        main_image: "images/thermalBaths.jpg",
+      },
+      {
+        name: "Chimney Cake",
+        description: "Chimney Cake is a classic",
+        rating: 8,
+        main_image: "images/chimneyCake.jpg",
+      },
+    ];
+
+    await Buda.insertMany(defaultBudas);
+    budas = await Buda.find(); // Fetch again after inserting
+  }
+
   res.send(budas);
 });
+
 
 // GET one buda by ID
 app.get("/api/budas/:id", async (req, res) => {
