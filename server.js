@@ -137,6 +137,7 @@ app.delete("/api/budas/:id", async (req, res) => {
   res.send(deleted);
 });
 
+
 // ✅ Joi validation function
 const validateBuda = (buda) => {
   const schema = Joi.object({
@@ -149,8 +150,9 @@ const validateBuda = (buda) => {
 
 // ✅ Start the server
 const PORT = process.env.PORT || 3002;
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`Listening on port ${PORT}`);
+  await seedInitialBudas();
 });
 
 
