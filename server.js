@@ -93,8 +93,11 @@ app.post("/api/budas", upload.single("img"), async (req, res) => {
       name: req.body.name,
       description: req.body.description,
       rating: req.body.rating,
-      main_image: req.file ? "images/" + req.file.filename : "",
     });
+    if (req.file) {
+      buda.main_image = "images/" + req.file.filename;
+    }
+    
 
     const newBuda = await buda.save();
     console.log("Buda saved:", newBuda);
@@ -151,6 +154,7 @@ const validateBuda = (buda) => {
     rating: Joi.number().required(),
   });
   return schema.validate(buda);
+  
 };
 
 
